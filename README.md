@@ -1,36 +1,204 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Swachh Connect - Community Driven Smart Sanitation Portal
 
-## Getting Started
+## Overview
 
-First, run the development server:
+Swachh Connect is a citizen-centric sanitation complaint portal inspired by the Swachh Bharat Mission.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The goal is to improve communication between citizens and municipalities while encouraging community participation in keeping cities clean.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Unlike traditional complaint portals, Swachh Connect focuses on transparency, citizen engagement, and collaborative issue resolution instead of only complaint registration.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Problem Statement
 
-## Learn More
+Citizens often encounter garbage dumps, overflowing bins, illegal dumping, and dirty public places.
 
-To learn more about Next.js, take a look at the following resources:
+Current challenges include:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Difficult complaint process
+- Lack of complaint visibility
+- Duplicate complaints
+- Poor tracking
+- No community participation
+- No transparency in issue resolution
+- Citizens don't know whom to contact
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+# Proposed Solution
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Swachh Connect enables citizens to report sanitation issues through a modern web portal.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Features include:
+
+- Report garbage using photos
+- GPS-based complaint location
+- Duplicate complaint detection
+- Community voting for high-priority issues
+- Municipality dashboard
+- Responsible officer information
+- Complaint tracking
+- Before & After cleaning proof
+- Citizen verification
+- Community cleanup participation
+
+---
+
+# Core Features
+
+## Citizen Portal
+
+- Register/Login
+- Dashboard
+- Report Issue
+- Upload Images
+- View Nearby Complaints
+- Vote for complaints
+- Track complaint status
+- View officer details
+- Verify cleanup
+- Join community cleanup drives
+
+---
+
+## Municipality Dashboard
+
+- Complaint management
+- Ward-wise complaints
+- Assign officers
+- Update complaint status
+- Upload before/after photos
+- Complaint analytics
+- Resolution statistics
+
+---
+
+## Community Features
+
+Citizens can:
+
+- Vote for existing complaints
+- Join existing complaints
+- Volunteer for cleanup drives
+- Participate in community events
+- Earn contribution badges
+
+---
+
+# Complaint Lifecycle
+
+Citizen Report
+
+↓
+
+Duplicate Detection
+
+↓
+
+Create Complaint
+
+↓
+
+Municipality Assignment
+
+↓
+
+Officer Assigned
+
+↓
+
+Cleaning Scheduled
+
+↓
+
+Cleaning Completed
+
+↓
+
+Officer uploads proof
+
+↓
+
+Citizen Verification
+
+↓
+
+Complaint Closed
+
+---
+
+# Roles
+
+## Citizen
+
+- Report issue
+- Vote
+- Track
+- Verify
+- Volunteer
+
+---
+
+## Municipality Officer
+
+- View assigned complaints
+- Update progress
+- Upload cleaning proof
+- Complete complaints
+
+---
+
+## Admin
+
+- Manage municipalities
+- Manage officers
+- Analytics
+- Reports
+- User management
+
+---
+
+# Tech Stack
+
+Frontend
+
+- Next.js
+- TailwindCSS
+- React
+
+Backend
+
+- FastAPI
+
+Database
+
+- PostgreSQL
+
+Storage
+
+- S3 Compatible Storage
+
+Authentication
+
+- JWT
+
+Maps
+
+- OpenStreetMap / Leaflet
+
+Deployment
+
+- Docker
+- Nginx
+
+---
+
+# Future Scope
+
+- AI hotspot prediction
+- Waste analytics
+- IoT smart dustbins
+- Municipality performance scoring
+- CSR sponsorship
+- NGO participation

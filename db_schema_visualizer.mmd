@@ -1,0 +1,23 @@
+erDiagram
+    AUTH_USERS ||--|| PROFILES : "has"
+
+    MUNICIPALITIES ||--o{ WARDS : contains
+
+    PROFILES ||--o{ COMPLAINTS : creates
+    MUNICIPALITIES ||--o{ COMPLAINTS : receives
+    WARDS ||--o{ COMPLAINTS : contains
+    PROFILES ||--o{ COMPLAINTS : assigned_to
+
+    COMPLAINTS ||--o{ COMPLAINT_IMAGES : has
+    COMPLAINTS ||--o{ COMPLAINT_VOTES : receives
+    COMPLAINTS ||--o{ COMPLAINT_COMMENTS : has
+    COMPLAINTS ||--o{ COMPLAINT_STATUS_HISTORY : tracks
+
+    MUNICIPALITIES ||--o{ CLEANUP_DRIVES : organizes
+    WARDS ||--o{ CLEANUP_DRIVES : hosts
+
+    CLEANUP_DRIVES ||--o{ CLEANUP_VOLUNTEERS : has
+    PROFILES ||--o{ CLEANUP_VOLUNTEERS : joins
+
+    PROFILES ||--o{ NOTIFICATIONS : receives
+    COMPLAINTS ||--o{ NOTIFICATIONS : triggers

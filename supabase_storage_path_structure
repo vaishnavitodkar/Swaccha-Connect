@@ -1,0 +1,12 @@
+complaint-images/
+    {complaint_id}/
+        report/
+            image-1.jpg
+            image-2.jpg
+
+        before/
+            before.jpg
+
+        after/
+            after.jpg
+

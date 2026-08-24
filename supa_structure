@@ -1,0 +1,32 @@
+Supabase
+│
+├── Authentication
+│   └── auth.users
+│
+├── PostgreSQL
+│   │
+│   ├── profiles
+│   ├── municipalities
+│   ├── wards
+│   │
+│   ├── complaints
+│   ├── complaint_images
+│   ├── complaint_votes
+│   ├── complaint_comments
+│   ├── complaint_status_history
+│   │
+│   ├── cleanup_drives
+│   ├── cleanup_volunteers
+│   │
+│   └── notifications
+│
+├── Storage
+│   ├── complaint-images
+│   └── cleanup-images
+│
+└── Realtime
+    ├── complaints
+    ├── complaint_votes
+    ├── complaint_comments
+    ├── complaint_status_history
+    └── notifications

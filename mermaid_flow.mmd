@@ -1,0 +1,68 @@
+flowchart TD
+
+A[Citizen Opens Portal]
+
+A --> B[Register / Login]
+
+B --> C[Citizen Dashboard]
+
+C --> D[Report New Complaint]
+C --> E[View Nearby Complaints]
+C --> F[Track Complaints]
+C --> G[Community Activities]
+
+D --> H[Upload Images]
+H --> I[Capture GPS Location]
+I --> J[Enter Description]
+J --> K[Select Garbage Category]
+
+K --> L{Duplicate Complaint Exists?}
+
+L -- Yes --> M[Join Existing Complaint]
+M --> N[Vote for Complaint]
+
+L -- No --> O[Create New Complaint]
+
+O --> P[Assign Municipality]
+P --> Q[Assign Sanitation Officer]
+
+Q --> R[Officer Dashboard]
+
+R --> S[View Assigned Complaints]
+S --> T[Schedule Cleaning]
+T --> U[Cleaning In Progress]
+U --> V[Upload Before Photo]
+V --> W[Upload After Photo]
+W --> X[Mark as Completed]
+
+X --> Y[Citizen Verification]
+
+Y -- Satisfied --> Z[Close Complaint]
+
+Y -- Not Satisfied --> AA[Reopen Complaint]
+
+AA --> R
+
+E --> AB[Nearby Complaint Map]
+
+AB --> AC[View Complaint]
+
+AC --> AD[Vote]
+
+AD --> AE[Comment]
+
+G --> AF[Join Cleanup Drive]
+
+AF --> AG[Volunteer Registration]
+
+AG --> AH[Participation Badge]
+
+Z --> AI[Complaint History]
+
+AI --> AJ[Municipality Analytics]
+
+AJ --> AK[Heatmap]
+
+AJ --> AL[Resolution Statistics]
+
+AJ --> AM[Ward Performance]
