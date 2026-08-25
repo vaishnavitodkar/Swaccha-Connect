@@ -243,3 +243,123 @@ Prioritize a complete working journey over feature quantity.
 5. Do not disable RLS.
 6. Do not introduce unnecessary dependencies.
 7. Test changes after implementation.
+
+# UI Framework — UX4G
+
+UX4G Web Components is the primary UI component library for this project.
+
+Package:
+
+ux4g-web-components
+
+All application UI should use UX4G components wherever an appropriate component exists.
+
+Before creating a custom UI component, check:
+
+docs/UX4G_COMPONENTS.md
+
+and the installed UX4G package.
+
+## Component priority
+
+Use:
+
+1. UX4G Web Component
+2. Existing project component built around UX4G
+3. Small custom component only when UX4G does not provide the required functionality
+
+Do NOT recreate existing UX4G components using raw HTML/CSS.
+
+For example, prefer the UX4G:
+
+- Button
+- Input
+- Select
+- Checkbox
+- Radio
+- Alert
+- Modal
+- Card
+- Navbar
+- Table
+- Pagination
+- Badge
+- Spinner
+- etc.
+
+when applicable.
+
+## Styling
+
+Do not introduce another UI component library.
+
+Do not install:
+
+- Bootstrap React
+- Material UI
+- Ant Design
+- Chakra UI
+- shadcn/ui
+
+unless explicitly requested.
+
+Do not replace UX4G with custom Tailwind components when an equivalent UX4G component exists.
+
+Tailwind may be used for:
+
+- page layout
+- spacing
+- responsive structure
+- positioning
+- application-specific layout
+
+but UX4G should provide the actual UI controls whenever possible.
+
+## UX4G documentation
+
+The canonical local reference is:
+
+docs/UX4G_COMPONENTS.md
+
+When component behavior is unclear:
+
+1. inspect the installed package
+2. inspect its TypeScript definitions/source
+3. inspect the official UX4G documentation if available
+
+Do not invent UX4G component names, attributes, APIs, or events.
+
+## Next.js
+
+UX4G components must be integrated correctly with Next.js App Router.
+
+If a UX4G component requires browser-side JavaScript:
+
+- isolate it appropriately in a client component
+- do not convert the entire application to client rendering unnecessarily
+
+Keep server components server-side wherever possible.
+
+## Accessibility
+
+Prefer UX4G's built-in accessibility behavior.
+
+Do not remove:
+
+- labels
+- keyboard navigation
+- focus management
+- semantic HTML
+- accessible names
+- ARIA attributes where required
+
+## Responsive design
+
+The application must work well on:
+
+- mobile phones
+- low-resolution screens
+- tablets
+- desktop
+
+Prioritize mobile because many Indian citizens will access the service from mobile devices.
