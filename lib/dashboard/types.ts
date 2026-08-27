@@ -29,6 +29,8 @@ export type ComplaintStatus = (typeof complaintStatuses)[number];
 export type Complaint = {
   id: string;
   citizen_id: string;
+  municipality_id: string | null;
+  ward_id: string | null;
   category: ComplaintCategory;
   title: string;
   description: string | null;
@@ -45,6 +47,9 @@ export type Complaint = {
   completed_at: string | null;
   closed_at: string | null;
 };
+
+export type Municipality = { id: string; name: string; state: string; district: string | null };
+export type Ward = { id: string; municipality_id: string; name: string; ward_number: string | null };
 
 export type ComplaintImage = { id: string; complaint_id: string; storage_path: string; image_type: "report" | "before" | "after"; created_at: string };
 export type StatusHistory = { id: string; complaint_id: string; status: ComplaintStatus; note: string | null; created_at: string };
