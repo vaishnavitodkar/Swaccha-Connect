@@ -46,6 +46,9 @@ export type Complaint = {
   started_at: string | null;
   completed_at: string | null;
   closed_at: string | null;
+  is_duplicate: boolean;
+  duplicate_of: string | null;
+  vote_count: number;
 };
 
 export type Municipality = { id: string; name: string; state: string; district: string | null };
