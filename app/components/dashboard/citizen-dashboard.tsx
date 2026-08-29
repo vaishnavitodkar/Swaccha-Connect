@@ -30,6 +30,7 @@ import {
   Menu,
   Search,
   Send,
+  Sprout,
   UserRound,
   X,
 } from "lucide-react";
@@ -432,6 +433,13 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
           />
           <NavLink href="#complaints" label="My complaints" />
           <NavLink href="#nearby" label="Nearby complaints" />
+          <Link
+            href="/activities"
+            className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            <Sprout className="size-4" />
+            Community activities
+          </Link>
           <NavLink
             href="#notifications"
             label="Notifications"
