@@ -305,7 +305,7 @@ export function OfficerDashboard({ profile }: { profile: OfficerProfile }) {
         <div className="mx-auto max-w-7xl p-4 sm:p-7">
           <section
             id="overview"
-            className="rounded-2xl bg-emerald-800 px-6 py-7 text-white sm:px-8"
+            className="hero-panel rounded-3xl px-6 py-7 text-white sm:px-8 sm:py-8"
           >
             <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
               <div>
@@ -499,7 +499,7 @@ function Stat({
   return (
     <button
       onClick={onClick}
-      className={`rounded-2xl border p-4 text-left transition ${active ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-100 dark:bg-emerald-950/30" : "border-slate-200 bg-white hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-900"}`}
+      className={`stat-card rounded-2xl border p-4 text-left transition ${active ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-100 dark:bg-emerald-950/30" : "border-slate-200 bg-white hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-900"}`}
     >
       <p className="text-sm text-slate-600 dark:text-slate-400">{label}</p>
       <p className="mt-2 text-3xl font-bold">{value}</p>
@@ -539,7 +539,7 @@ function OfficerComplaintRow({
           onClick();
         }
       }}
-      className="flex w-full cursor-pointer gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-emerald-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900"
+      className="complaint-card flex w-full cursor-pointer gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-emerald-50 text-emerald-700">
         {imageUrl ? (

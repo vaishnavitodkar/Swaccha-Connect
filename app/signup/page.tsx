@@ -6,7 +6,7 @@ export const metadata = { title: "Create account | Swachh Connect" };
 export default function SignupPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-20 sm:px-8">
-      <section className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-9 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
+      <section className="surface-card w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-6 sm:p-9 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none">
         <Link className="text-sm font-bold tracking-[0.14em] text-emerald-700 uppercase dark:text-emerald-400" href="/login">Swachh Connect</Link>
         <h1 className="mt-7 text-3xl font-bold tracking-tight">Create your account</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Join your community in reporting and resolving local sanitation issues.</p>

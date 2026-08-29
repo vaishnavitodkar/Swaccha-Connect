@@ -3,8 +3,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f7f8f6;
-  --foreground: #172119;
+  --background: #f5f7f4;
+  --foreground: #16251d;
+  --brand: #087a4d;
+  --brand-deep: #065f3d;
 }
 
 @theme inline {
@@ -15,7 +17,66 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
 }
+
+* { scroll-behavior: smooth; }
+
+button, a, input, select, textarea { transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease; }
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgb(16 185 129 / 45%);
+  outline-offset: 2px;
+}
+
+.hero-panel {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(115deg, #075b3a 0%, #087a4d 55%, #0d9362 100%);
+  box-shadow: 0 18px 45px rgb(6 95 61 / 18%);
+}
+
+.hero-panel::after {
+  content: "";
+  position: absolute;
+  width: 19rem;
+  height: 19rem;
+  right: -6rem;
+  top: -11rem;
+  border-radius: 9999px;
+  border: 30px solid rgb(255 255 255 / 10%);
+  pointer-events: none;
+}
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgb(15 23 42 / 8%); }
+
+.complaint-card { box-shadow: 0 1px 2px rgb(15 23 42 / 4%); }
+.complaint-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgb(15 23 42 / 9%); }
+
+.surface-card { box-shadow: 0 14px 35px rgb(15 23 42 / 7%); }
+
+.auth-hero {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 85% 15%, rgb(52 211 153 / 34%), transparent 22rem), linear-gradient(145deg, #043b2a, #087a4d 62%, #0f9f67);
+}
+
+.auth-hero::before, .auth-hero::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  pointer-events: none;
+}
+.auth-hero::before { width: 34rem; height: 34rem; right: -15rem; bottom: -17rem; }
+.auth-hero::after { width: 16rem; height: 16rem; right: 14%; top: 14%; }
 
 .field {
   width: 100%;

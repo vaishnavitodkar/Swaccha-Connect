@@ -14,9 +14,14 @@ import {
 import Link from "next/link";
 import {
   ArrowUp,
+  BadgeCheck,
   Bell,
+  BellRing,
   CheckCircle2,
+  CheckCheck,
+  ClipboardCheck,
   Clock3,
+  CircleDotDashed,
   FilePlus2,
   ListFilter,
   LoaderCircle,
@@ -72,6 +77,16 @@ type Profile = {
   avatar_url: string | null;
 };
 type Filter = "all" | "pending" | "in_progress" | "resolved" | "rejected";
+type DashboardNotification = {
+  id: string;
+  title: string;
+  message: string;
+  complaintId: string | null;
+  createdAt: string;
+  isRead: boolean;
+  kind: "submitted" | "status" | "in_progress" | "resolved" | "duplicate" | "update";
+  persistedId?: string;
+};
 
 export function CitizenDashboard({ profile }: { profile: Profile }) {
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -260,26 +275,80 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
     );
   });
   const unread = notifications.filter((item) => !item.is_read).length;
+  const notificationFeed = useMemo<DashboardNotification[]>(() => {
+    const saved = notifications.map((item) => ({
+      id: `saved-${item.id}`,
+      title: item.title,
+      message: item.message,
+      complaintId: item.complaint_id,
+      createdAt: item.created_at,
+      isRead: item.is_read,
+      kind: notificationKind(item.title, item.message),
+      persistedId: item.id,
+    }));
+    const submitted = complaints.map((item) => ({
+      id: `submitted-${item.id}`,
+      title: "Complaint submitted",
+      message: `Your report ${shortComplaintId(item.id)} — ${item.title} was submitted successfully.`,
+      complaintId: item.id,
+      createdAt: item.reported_at,
+      isRead: true,
+      kind: "submitted" as const,
+    }));
+    const statusChanges = history
+      .filter((item) => item.status !== "reported")
+      .map((item) => {
+        const complaint = complaints.find((entry) => entry.id === item.complaint_id);
+        const resolved = resolvedStatuses.includes(item.status);
+        return {
+          id: `status-${item.id}`,
+          title: resolved ? "Complaint resolved" : item.status === "in_progress" ? "Work has started" : "Complaint status updated",
+          message: resolved
+            ? `Your complaint${complaint ? ` — ${complaint.title}` : ""} has been resolved.`
+            : `Your complaint${complaint ? ` — ${complaint.title}` : ""} is now ${statusLabels[item.status]}.`,
+          complaintId: item.complaint_id,
+          createdAt: item.created_at,
+          isRead: true,
+          kind: resolved ? "resolved" as const : item.status === "in_progress" ? "in_progress" as const : "status" as const,
+        };
+      });
+    return [...saved, ...submitted, ...statusChanges]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 20);
+  }, [complaints, history, notifications]);
   const initial = profile.full_name?.trim().slice(0, 1).toUpperCase() || "C";
 
-  async function openNotification(notification: Notification) {
-    if (!notification.is_read) {
-      await supabase
+  async function openNotification(notification: DashboardNotification) {
+    if (notification.persistedId && !notification.isRead) {
+      const { error: updateError } = await supabase
         .from("notifications")
         .update({ is_read: true })
-        .eq("id", notification.id);
-      setNotifications((current) =>
-        current.map((item) =>
-          item.id === notification.id ? { ...item, is_read: true } : item,
-        ),
-      );
+        .eq("id", notification.persistedId);
+      if (!updateError) {
+        setNotifications((current) =>
+          current.map((item) =>
+            item.id === notification.persistedId ? { ...item, is_read: true } : item,
+          ),
+        );
+      }
     }
-    if (notification.complaint_id)
+    if (notification.complaintId)
       setSelected(
-        complaints.find((item) => item.id === notification.complaint_id) ??
+        complaints.find((item) => item.id === notification.complaintId) ??
           null,
       );
     setNoticeOpen(false);
+  }
+  async function markAllNotificationsRead() {
+    const unreadIds = notifications.filter((item) => !item.is_read).map((item) => item.id);
+    if (!unreadIds.length) return;
+    const { error: updateError } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .in("id", unreadIds);
+    if (!updateError) {
+      setNotifications((current) => current.map((item) => ({ ...item, is_read: true })));
+    }
   }
   const imageFor = (complaintId: string) =>
     images.find(
@@ -366,7 +435,7 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
           <NavLink
             href="#notifications"
             label="Notifications"
-            onClick={() => setNoticeOpen(true)}
+            onClick={() => setMenuOpen(false)}
             badge={unread}
           />
           <Link
@@ -420,8 +489,10 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
               </button>
               {noticeOpen && (
                 <NotificationMenu
-                  notifications={notifications}
+                  notifications={notificationFeed}
                   onSelect={openNotification}
+                  onMarkAllRead={markAllNotificationsRead}
+                  unread={unread}
                 />
               )}
             </div>
@@ -449,7 +520,7 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
         <div className="mx-auto max-w-7xl p-4 sm:p-7">
           <section
             id="overview"
-            className="rounded-2xl bg-emerald-800 px-6 py-7 text-white sm:px-8"
+            className="hero-panel rounded-3xl px-6 py-7 text-white sm:px-8 sm:py-8"
           >
             <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
               <div>
@@ -465,7 +536,7 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
                 </p>
               </div>
               <button
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-emerald-900 hover:bg-emerald-50"
+                className="relative z-10 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-emerald-900 shadow-lg shadow-emerald-950/10 hover:-translate-y-0.5 hover:bg-emerald-50"
                 onClick={() => setReportOpen(true)}
               >
                 <FilePlus2 className="size-5" />
@@ -593,6 +664,13 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
               />
             )}
           </section>
+          <NotificationCenter
+            notifications={notificationFeed}
+            loading={loading}
+            unread={unread}
+            onSelect={openNotification}
+            onMarkAllRead={markAllNotificationsRead}
+          />
           <section className="mt-8 grid gap-6 xl:grid-cols-[1.45fr_1fr]">
             <RecentActivity
               complaints={complaints}
@@ -687,7 +765,7 @@ function Stat({
   return (
     <button
       onClick={onClick}
-      className={`rounded-2xl border p-4 text-left transition ${active ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-100 dark:bg-emerald-950/30" : "border-slate-200 bg-white hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-900"}`}
+      className={`stat-card rounded-2xl border p-4 text-left transition ${active ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-100 dark:bg-emerald-950/30" : "border-slate-200 bg-white hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-900"}`}
     >
       <p className="text-sm text-slate-600 dark:text-slate-400">{label}</p>
       <p className="mt-2 text-3xl font-bold">{value}</p>
@@ -766,7 +844,7 @@ function ComplaintCard({
           onClick();
         }
       }}
-      className="flex w-full cursor-pointer gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-emerald-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-900"
+      className="complaint-card flex w-full cursor-pointer gap-4 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-emerald-300 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-emerald-50 text-emerald-700">
         {imageUrl ? (
@@ -852,7 +930,7 @@ function NearbyComplaints({
   return (
     <section
       id="nearby"
-      className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+      className="surface-card scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -993,39 +1071,106 @@ function EmptyState({
 function NotificationMenu({
   notifications,
   onSelect,
+  onMarkAllRead,
+  unread,
 }: {
-  notifications: Notification[];
-  onSelect: (notification: Notification) => void;
+  notifications: DashboardNotification[];
+  onSelect: (notification: DashboardNotification) => void;
+  onMarkAllRead: () => void;
+  unread: number;
 }) {
   return (
     <div
-      id="notifications"
-      className="absolute right-0 top-12 w-80 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+      className="absolute right-0 top-12 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900"
     >
-      <p className="px-3 py-2 text-sm font-bold">Notifications</p>
+      <div className="flex items-center justify-between px-3 py-2">
+        <p className="text-sm font-bold">Notifications</p>
+        {unread ? <button onClick={onMarkAllRead} className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400">Mark all read</button> : null}
+      </div>
       {notifications.length ? (
         notifications.slice(0, 6).map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onSelect(item)}
-            className={`w-full rounded-xl p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 ${item.is_read ? "" : "bg-emerald-50 dark:bg-emerald-950/30"}`}
-          >
-            <p className="text-sm font-semibold">{item.title}</p>
-            <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-400">
-              {item.message}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              {formatRelativeDate(item.created_at)}
-            </p>
-          </button>
+          <NotificationItem key={item.id} notification={item} compact onSelect={onSelect} />
         ))
       ) : (
-        <p className="px-3 py-6 text-center text-sm text-slate-500">
-          You’re all caught up!
-        </p>
+        <NotificationEmpty compact />
       )}
     </div>
   );
+}
+
+function NotificationCenter({
+  notifications,
+  loading,
+  unread,
+  onSelect,
+  onMarkAllRead,
+}: {
+  notifications: DashboardNotification[];
+  loading: boolean;
+  unread: number;
+  onSelect: (notification: DashboardNotification) => void;
+  onMarkAllRead: () => void;
+}) {
+  return (
+    <section id="notifications" className="surface-card mt-8 scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"><BellRing className="size-5" /></span>
+          <div>
+            <h2 className="text-lg font-bold">Notifications</h2>
+            <p className="text-sm text-slate-500">Updates from your complaints and municipal team.</p>
+          </div>
+        </div>
+        {unread ? (
+          <button onClick={onMarkAllRead} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-emerald-200 px-3 text-sm font-bold text-emerald-800 hover:bg-emerald-50 dark:border-emerald-900 dark:text-emerald-300 dark:hover:bg-emerald-950/30">
+            <CheckCheck className="size-4" /> Mark all as read
+          </button>
+        ) : null}
+      </div>
+      {loading ? (
+        <div className="mt-5 grid gap-3"><Skeleton className="h-20" /><Skeleton className="h-20" /></div>
+      ) : notifications.length ? (
+        <div className="mt-5 grid gap-3">
+          {notifications.map((item) => <NotificationItem key={item.id} notification={item} onSelect={onSelect} />)}
+        </div>
+      ) : <NotificationEmpty />}
+    </section>
+  );
+}
+
+function NotificationItem({ notification, compact = false, onSelect }: { notification: DashboardNotification; compact?: boolean; onSelect: (notification: DashboardNotification) => void }) {
+  return (
+    <button onClick={() => onSelect(notification)} className={`group flex w-full gap-3 rounded-xl border p-3 text-left transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-sm ${notification.isRead ? "border-slate-100 bg-white dark:border-slate-800 dark:bg-slate-900" : "border-emerald-100 bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/30"}`}>
+      <NotificationIcon kind={notification.kind} />
+      <span className="min-w-0 flex-1">
+        <span className="flex items-start justify-between gap-3"><span className="text-sm font-bold">{notification.title}</span>{!notification.isRead ? <span className="mt-1.5 size-2 shrink-0 rounded-full bg-emerald-600" aria-label="Unread" /> : null}</span>
+        <span className={`mt-1 block leading-5 text-slate-600 dark:text-slate-400 ${compact ? "text-xs" : "text-sm"}`}>{notification.message}</span>
+        <span className="mt-1.5 block text-xs font-medium text-slate-500">{formatRelativeDate(notification.createdAt)}</span>
+      </span>
+    </button>
+  );
+}
+
+function NotificationIcon({ kind }: { kind: DashboardNotification["kind"] }) {
+  const className = "size-5";
+  const wrapper = "mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl";
+  if (kind === "resolved") return <span className={`${wrapper} bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300`}><CheckCircle2 className={className} /></span>;
+  if (kind === "in_progress") return <span className={`${wrapper} bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300`}><CircleDotDashed className={className} /></span>;
+  if (kind === "submitted") return <span className={`${wrapper} bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300`}><ClipboardCheck className={className} /></span>;
+  return <span className={`${wrapper} bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300`}><BadgeCheck className={className} /></span>;
+}
+
+function NotificationEmpty({ compact = false }: { compact?: boolean }) {
+  return <div className={`${compact ? "px-3 py-7" : "mt-5 py-10"} text-center`}><span className="mx-auto grid size-11 place-items-center rounded-2xl bg-slate-100 text-slate-500 dark:bg-slate-800"><Bell className="size-5" /></span><p className="mt-3 font-bold">You’re all caught up!</p><p className="mx-auto mt-1 max-w-xs text-sm leading-6 text-slate-500">We’ll notify you when there is an update on your complaints.</p></div>;
+}
+
+function notificationKind(title: string, message: string): DashboardNotification["kind"] {
+  const text = `${title} ${message}`.toLowerCase();
+  if (text.includes("resolved") || text.includes("completed") || text.includes("closed")) return "resolved";
+  if (text.includes("in progress") || text.includes("started")) return "in_progress";
+  if (text.includes("duplicate")) return "duplicate";
+  if (text.includes("submitted") || text.includes("reported")) return "submitted";
+  return "update";
 }
 
 function RecentActivity({
@@ -1491,7 +1636,7 @@ function ReportDialog({
     >
       <form
         onSubmit={submit}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-7 dark:bg-slate-900"
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-7 dark:bg-slate-900"
       >
         <div className="flex justify-between gap-4">
           <div>
@@ -1521,6 +1666,10 @@ function ReportDialog({
           </p>
         )}
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <p className="text-xs font-extrabold tracking-[.14em] text-emerald-700 uppercase dark:text-emerald-400">Where is the issue?</p>
+            <p className="mt-1 text-sm text-slate-500">Choose the local area so the right team can see your report.</p>
+          </div>
           <Field label="Municipality">
             <input
               list="municipality-options"
@@ -1570,6 +1719,9 @@ function ReportDialog({
               ))}
             </datalist>
           </Field>
+          <div className="border-t border-slate-100 pt-5 sm:col-span-2 dark:border-slate-800">
+            <p className="text-xs font-extrabold tracking-[.14em] text-emerald-700 uppercase dark:text-emerald-400">What needs attention?</p>
+          </div>
           <Field label="Problem category">
             <select name="category" required className="field">
               <option value="">Choose a category</option>
@@ -1599,7 +1751,7 @@ function ReportDialog({
               />
             </Field>
           </div>
-          <div className="sm:col-span-2">
+          <div className="border-t border-slate-100 pt-5 sm:col-span-2 dark:border-slate-800">
             <Field label="Address or landmark">
               <input
                 name="address"
