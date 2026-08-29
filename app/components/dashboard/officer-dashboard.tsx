@@ -13,6 +13,7 @@ import {
 } from "react";
 import Link from "next/link";
 import {
+  ArrowUp,
   Camera,
   CheckCircle2,
   FilePlus2,
@@ -246,7 +247,7 @@ export function OfficerDashboard({ profile }: { profile: OfficerProfile }) {
           <OfficerNavLink href="#overview" label="Dashboard" />
           <OfficerNavLink href="#complaints" label="Complaints" />
           <Link
-            href="/profile"
+            href="/profile/officer"
             className="flex min-h-11 items-center rounded-xl px-3 text-slate-600 hover:bg-emerald-50 hover:text-emerald-800 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             Profile
@@ -282,7 +283,7 @@ export function OfficerDashboard({ profile }: { profile: OfficerProfile }) {
             </div>
           </div>
           <Link
-            href="/profile"
+            href="/profile/officer"
             className="hidden items-center gap-2 rounded-xl p-1 transition hover:bg-emerald-50 sm:flex dark:hover:bg-slate-800"
           >
             <div className="grid size-9 place-items-center overflow-hidden rounded-full bg-emerald-700 text-sm font-bold text-white">
@@ -573,6 +574,10 @@ function OfficerComplaintRow({
             <span>{shortComplaintId(complaint.id)}</span>
             <span>{formatDate(complaint.reported_at)}</span>
           </div>
+          <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">
+            <ArrowUp className="size-3.5" />
+            {complaint.vote_count}
+          </span>
         </div>
       </div>
     </div>

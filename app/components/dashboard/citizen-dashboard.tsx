@@ -25,6 +25,7 @@ import {
   Menu,
   Search,
   Send,
+  UserRound,
   X,
 } from "lucide-react";
 import { SignOutButton } from "@/app/components/auth/sign-out-button";
@@ -60,6 +61,10 @@ import {
   Skeleton,
   StatusBadge,
 } from "@/lib/dashboard/ui";
+import {
+  fetchOfficers,
+  OfficerInfo,
+} from "@/lib/dashboard/officers";
 
 type Profile = {
   id: string;
@@ -78,6 +83,9 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
   const [wards, setWards] = useState<Ward[]>([]);
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [voteCounts, setVoteCounts] = useState<Record<string, number>>({});
+  const [officers, setOfficers] = useState<Map<string, OfficerInfo>>(
+    new Map(),
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -140,7 +148,7 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
       complaintIds.length
         ? supabase
             .from("complaint_status_history")
-            .select("id,complaint_id,status,note,created_at")
+            .select("id,complaint_id,status,changed_by,note,created_at")
             .in("complaint_id", complaintIds)
             .order("created_at", { ascending: true })
         : Promise.resolve({ data: [], error: null }),
@@ -160,6 +168,10 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
       fetchVoteCounts(supabase, allIds),
       fetchMyVotes(supabase, profile.id, allIds),
     ]);
+    const officerIds = (historyResult.data ?? [])
+      .map((item: { changed_by: string | null }) => item.changed_by)
+      .filter((id: string | null): id is string => Boolean(id));
+    const officersResult = await fetchOfficers(supabase, officerIds);
     setComplaints((complaintRows ?? []) as Complaint[]);
     setNearby((nearbyRows ?? []) as Complaint[]);
     setImages((imageResult.data ?? []) as ComplaintImage[]);
@@ -169,6 +181,7 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
     setWards((wardResult.data ?? []) as Ward[]);
     setVoteCounts(votesResult);
     setMyVotes(myVotesResult);
+    setOfficers(officersResult);
     setLoading(false);
   }, [profile.id, supabase]);
 
@@ -274,6 +287,20 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
         item.complaint_id === complaintId && item.image_type === "report",
     );
   const voteCountFor = (complaintId: string) => voteCounts[complaintId] ?? 0;
+  const officerFor = (complaintId: string): OfficerInfo | undefined => {
+    const entry = [...history]
+      .filter(
+        (item) =>
+          item.complaint_id === complaintId &&
+          item.changed_by &&
+          item.status !== "reported",
+      )
+      .sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      )[0];
+    if (!entry) return undefined;
+    return officers.get(entry.changed_by as string);
+  };
   async function handleToggleVote(complaintId: string) {
     const voted = myVotes.has(complaintId);
     const prevCount = voteCountFor(complaintId);
@@ -553,6 +580,7 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
                     ward={wards.find((item) => item.id === complaint.ward_id)}
                     voteCount={voteCountFor(complaint.id)}
                     hasVoted={myVotes.has(complaint.id)}
+                    officer={officerFor(complaint.id)}
                     onToggleVote={() => handleToggleVote(complaint.id)}
                     onClick={() => setSelected(complaint)}
                   />
@@ -593,6 +621,7 @@ export function CitizenDashboard({ profile }: { profile: Profile }) {
           ward={wards.find((item) => item.id === selected.ward_id)}
           images={images.filter((item) => item.complaint_id === selected.id)}
           history={history.filter((item) => item.complaint_id === selected.id)}
+          officer={officerFor(selected.id)}
           voteCount={voteCountFor(selected.id)}
           hasVoted={myVotes.has(selected.id)}
           onToggleVote={() => handleToggleVote(selected.id)}
@@ -704,6 +733,7 @@ function ComplaintCard({
   ward,
   voteCount,
   hasVoted,
+  officer,
   onToggleVote,
   onClick,
 }: {
@@ -713,6 +743,7 @@ function ComplaintCard({
   ward?: Ward;
   voteCount: number;
   hasVoted: boolean;
+  officer?: OfficerInfo;
   onToggleVote: () => void;
   onClick: () => void;
 }) {
@@ -766,6 +797,17 @@ function ComplaintCard({
             {ward
               ? ` · ${ward.ward_number ? `Ward ${ward.ward_number} — ` : ""}${ward.name}`
               : ""}
+          </p>
+        )}
+        {officer && (
+          <p className="mt-1.5 inline-flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-lg bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+            <UserRound className="size-3.5" />
+            {officer.full_name || "Municipal officer"}
+            {officer.phone ? (
+              <span className="font-medium text-slate-500 dark:text-slate-400">
+                · {officer.phone}
+              </span>
+            ) : null}
           </p>
         )}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-slate-500">
@@ -1048,6 +1090,7 @@ function ComplaintDetails({
   ward,
   images,
   history,
+  officer,
   voteCount,
   hasVoted,
   onToggleVote,
@@ -1058,6 +1101,7 @@ function ComplaintDetails({
   ward?: Ward;
   images: ComplaintImage[];
   history: StatusHistory[];
+  officer?: OfficerInfo;
   voteCount: number;
   hasVoted: boolean;
   onToggleVote: () => void;
@@ -1174,6 +1218,26 @@ function ComplaintDetails({
             <dt className="text-slate-500">Location</dt>
             <dd className="mt-1 font-semibold">
               {complaint.address || "Coordinates provided with report"}
+            </dd>
+          </div>
+          <div className="sm:col-span-2">
+            <dt className="text-slate-500">Assigned officer</dt>
+            <dd className="mt-1 font-semibold">
+              {officer ? (
+                <span className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+                    <UserRound className="size-3.5" />
+                    {officer.full_name || "Municipal officer"}
+                    {officer.phone ? (
+                      <span className="font-medium text-slate-500 dark:text-slate-400">
+                        · {officer.phone}
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+              ) : (
+                "Not assigned yet"
+              )}
             </dd>
           </div>
         </dl>

@@ -65,6 +65,7 @@ export async function fetchMunicipalityComplaints(
     .from("complaints")
     .select(complaintSelect)
     .eq("municipality_id", municipalityId)
+    .eq("is_duplicate", false)
     .order("reported_at", { ascending: false });
   return ((data ?? []) as unknown) as Complaint[];
 }
@@ -86,11 +87,40 @@ export async function updateComplaintStatus(
   },
 ): Promise<{ error?: string }> {
   const now = new Date().toISOString();
+  const update = { status, [timestamp]: now };
   const { error: updateError } = await supabase
     .from("complaints")
-    .update({ status, [timestamp]: now })
+    .update(update)
     .eq("id", complaintId);
   if (updateError) return { error: updateError.message };
+
+  const { data: duplicates } = await supabase
+    .from("complaints")
+    .select("id")
+    .eq("duplicate_of", complaintId);
+  const duplicateIds = (duplicates ?? []).map((item) => item.id);
+
+  if (duplicateIds.length) {
+    const { error: dupUpdateError } = await supabase
+      .from("complaints")
+      .update(update)
+      .in("id", duplicateIds);
+    if (dupUpdateError) return { error: dupUpdateError.message };
+
+    const { error: dupHistoryError } = await supabase
+      .from("complaint_status_history")
+      .insert(
+        duplicateIds.map((id) => ({
+          complaint_id: id,
+          status,
+          changed_by: officerId,
+          note: note?.trim() || null,
+          created_at: now,
+        })),
+      );
+    if (dupHistoryError) return { error: dupHistoryError.message };
+  }
+
   const { error: historyError } = await supabase
     .from("complaint_status_history")
     .insert({
